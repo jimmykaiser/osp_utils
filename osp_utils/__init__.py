@@ -88,14 +88,26 @@ def percentile_rank_groups_10000(df, col_to_groupby, col_to_rank, method_to_rank
     df['per_rank'] = ((df.raw_rank*100)/(df.groupby_size + 1)).round(1)
 
 
-def autolabel(rects, ax):
-    """Use to label bar plots"""
+def autolabel(rects, ax, decimal = 1, percentage = 1):
+    """Use to label bar plots
+    rects = ax.patches"""
     for rect in rects:
         height = rect.get_height()
-        height_val = round_correct(rect.get_height()*100,1)
+        height_val = round_correct(rect.get_height()*percentage,decimal)
+        s = '%1.0f' % float(height_val)
         ax.text(rect.get_x() + (rect.get_width()/2), height,
-                s = str(height_val) + "%",
+                s = str(s) + "%",
                 ha='center', va='bottom', fontsize = 10)
+
+def to_percent(y, position):
+    """
+    Usage:
+    formatter = FuncFormatter(to_percent)
+    ax.yaxis.set_major_formatter(formatter)
+    """
+    s = str(100 * y)
+    s = '%1.0f' % float(s)
+    return str(s) + '%'
 
 def return_dups(dataframe, variable):
     return dataframe[dataframe[variable].isin(dataframe[dataframe[variable].duplicated()][variable])]
@@ -131,6 +143,14 @@ def print_sprint_ids(ids):
 #RPSG public spreadsheet columns names
 city_columns = ['grade', 'year', 'category', 'n_tested', 'scale_score', 'level_1_n', 'level_1_per', 'level_2_n', 'level_2_per',
                        'level_3_n', 'level_3_per','level_4_n', 'level_4_per', 'level_34_n', 'level_34_per']
+
+# 2016 SQR public workbooks
+hs_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/32595FE4-15E0-4DFE-A4F4-2D9AD32ED6D1/0/2015_2016_HS_SQR_Results_2016_11_15.xlsx")
+ems_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/B3F6B2AC-DE2D-4F5E-8F62-A11EBF3090EC/0/2015_2016_EMS_SQR_Results_2016_11_15.xlsx")
+hst_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/2E919AAB-D033-45C4-8CDB-F0D3EF9FACD1/0/2015_2016_HST_SQR_Results_2016_11_16.xlsx")
+yabc_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/9857774C-1EFB-4519-9A5D-D7869298DCBD/0/2015_2016_YABC_SQR_Results_2016_11_16.xlsx")
+ec_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/EB047F9D-E0B3-48EF-BB85-1C6B03844BFB/0/2015_2016_EC_SQR_Results_2016_11_16.xlsx")
+d75_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/25C17A3B-93B8-40FD-9F88-A4E7A81AA545/0/2015_2016_D75_SQR_Results_2016_11_16.xlsx")
 
 def grouped_weighted_avg(values, weights, by):
     "Usage: grouped_weighted_avg(values=df[values_col], weights=df[weight_col], by=df[grouped_col])"
