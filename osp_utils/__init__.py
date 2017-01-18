@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sas7bdat import SAS7BDAT
 pd.options.mode.chained_assignment = None 
 import seaborn as sns
+import pyodbc
 
 pd.options.display.max_rows = 100
 pd.options.display.max_columns = 100
@@ -144,7 +145,7 @@ def print_sprint_ids(ids):
 city_columns = ['grade', 'year', 'category', 'n_tested', 'scale_score', 'level_1_n', 'level_1_per', 'level_2_n', 'level_2_per',
                        'level_3_n', 'level_3_per','level_4_n', 'level_4_per', 'level_34_n', 'level_34_per']
 
-# 2016 SQR public workbooks
+# 2016 SQR public workbook summary pages
 hs_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/32595FE4-15E0-4DFE-A4F4-2D9AD32ED6D1/0/2015_2016_HS_SQR_Results_2016_11_15.xlsx")
 ems_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/B3F6B2AC-DE2D-4F5E-8F62-A11EBF3090EC/0/2015_2016_EMS_SQR_Results_2016_11_15.xlsx")
 hst_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/2E919AAB-D033-45C4-8CDB-F0D3EF9FACD1/0/2015_2016_HST_SQR_Results_2016_11_16.xlsx")
@@ -180,3 +181,7 @@ def kappa(cm):
     acc = sum_diag * 1.0 / sum_all
     rand = sum_rands * 1.0 / (sum_all * sum_all)
     return (acc - rand) / (1 - rand)
+
+# SQL server connections
+conn_27 = pyodbc.connect(r'DRIVER={SQL Server};SERVER=MTSQLVS27\MTSQLINS27;Trusted_Connection=yes;')
+conn_ats = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES11vSINFAG02,4433;Trusted_Connection=yes;')
