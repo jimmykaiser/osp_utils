@@ -79,17 +79,17 @@ def create_bn_col(df, dbn_col = "dbn"):
     df['bn'] = df[dbn_col].apply(lambda x: x[2:])
 
 
-def percentile_rank_groups_10000(df, col_to_groupby, col_to_rank, method_to_rank = "average"):
+def percentile_rank_groups_10000(df, cols_to_groupby, col_to_rank, method_to_rank = "average"):
     """
     Convert numerical column to percentile rank in the same method that SAS uses
     See http://support.sas.com/documentation/cdl/en/proc/61895/HTML/default/viewer.htm#a000146840.htm
     """
-    df['raw_rank'] = df[[col_to_rank, col_to_groupby]].groupby(col_to_groupby).rank(method = method_to_rank)
-    df['groupby_size'] = df.groupby(col_to_groupby)[col_to_rank].transform('size')
-    df['per_rank'] = ((df.raw_rank*100)/(df.groupby_size + 1)).round(1)
+    df['raw_rank'] = df[[col_to_rank] + cols_to_groupby].groupby(cols_to_groupby).rank(method = method_to_rank)
+    df['groupby_size'] = df.groupby(cols_to_groupby)[col_to_rank].transform('size')
+    df['per_rank'] = ((df.raw_rank*100)/(df.groupby_size + 1)).apply(round_correct, args = (1,))
 
 
-def autolabel(rects, ax, decimal = 1, percentage = 1):
+def autolabel(rects, ax, decimal = 1, percentage = 1, additional_character = "%"):
     """Use to label bar plots
     rects = ax.patches"""
     for rect in rects:
@@ -97,7 +97,7 @@ def autolabel(rects, ax, decimal = 1, percentage = 1):
         height_val = round_correct(rect.get_height()*percentage,decimal)
         s = '%1.0f' % float(height_val)
         ax.text(rect.get_x() + (rect.get_width()/2), height,
-                s = str(s) + "%",
+                s = str(s) + additional_character,
                 ha='center', va='bottom', fontsize = 10)
 
 def to_percent(y, position):
