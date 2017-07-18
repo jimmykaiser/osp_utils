@@ -185,3 +185,14 @@ def kappa(cm):
 # SQL server connections
 conn_27 = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES00VADOSQL001;Trusted_Connection=yes;')
 conn_ats = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES11vSINFAG02,4433;Trusted_Connection=yes;')
+
+def get_school_names(year, db_connection = conn_27):
+    supertable_query = """SELECT [Location_Code]
+              ,[System_Code]
+              ,[Location_Name]
+          FROM [OADM_INT].[dbo].[Location_Supertable1]
+          where Fiscal_Year = """ + year + """
+          and System_ID = 'ATS'"""
+    school_names_df = pd.read_sql(supertable_query, con = db_connection)
+    school_names_df.columns = ['bn', 'dbn', 'school_name']
+    return school_names_df
