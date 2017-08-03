@@ -94,7 +94,7 @@ def autolabel(ax, decimal = 1, percentage = 1, additional_character = ""):
     rects = ax.patches
     for rect in rects:
         height = rect.get_height()
-        height_val = round_correct(rect.get_height()*percentage,decimal)
+        height_val = round_correct(rect.get_height(),decimal) * percentage
         s = '%1.0f' % float(height_val)
         ax.text(rect.get_x() + (rect.get_width()/2), height,
                 s = str(s) + additional_character,
@@ -103,12 +103,19 @@ def autolabel(ax, decimal = 1, percentage = 1, additional_character = ""):
 def to_percent(y, position):
     """
     Usage:
-    formatter = FuncFormatter(to_percent)
+    formatter = plt.FuncFormatter(to_percent)
     ax.yaxis.set_major_formatter(formatter)
     """
     s = str(100 * y)
     s = '%1.0f' % float(s)
     return str(s) + '%'
+
+def change_axis_to_percent(ax, axis = 'y'):
+    formatter = plt.FuncFormatter(to_percent)
+    if axis = 'x':
+        ax.xaxis.set_major_formatter(formatter)
+    if axis = 'y':
+        ax.yaxis.set_major_formatter(formatter)
 
 def return_dups(dataframe, variable):
     return dataframe[dataframe[variable].isin(dataframe[dataframe[variable].duplicated()][variable])]
