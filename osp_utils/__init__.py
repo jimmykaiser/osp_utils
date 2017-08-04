@@ -203,3 +203,15 @@ def get_school_names(year, db_connection = conn_27):
     school_names_df = pd.read_sql(supertable_query, con = db_connection)
     school_names_df.columns = ['bn', 'dbn', 'school_name']
     return school_names_df
+
+def hide_code_on_export():
+    """Use before any code cells to hide code on export to HTML
+    There will be a toggle button to show or hide the code
+    Markdown cells will still be shown"""
+    import IPython.core.display as di
+
+    # This line will hide code by default when the notebook is exported as HTML
+    di.display_html('<script>jQuery(function() {if (jQuery("body.notebook_app").length == 0) { jQuery(".input_area").toggle(); jQuery(".prompt").toggle();}});</script>', raw=True)
+
+    # This line will add a button to toggle visibility of code blocks, for use with the HTML export version
+    di.display_html('''<button onclick="jQuery('.input_area').toggle(); jQuery('.prompt').toggle();">Toggle code</button>''', raw=True)
