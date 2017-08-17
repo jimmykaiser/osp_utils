@@ -89,16 +89,28 @@ def percentile_rank_groups_10000(df, cols_to_groupby, col_to_rank, method_to_ran
     df['per_rank'] = ((df.raw_rank*100)/(df.groupby_size + 1)).apply(round_correct, args = (1,))
 
 
-def autolabel(ax, decimal = 1, percentage = 1, additional_character = ""):
+def autolabel(ax, 
+              decimal = 1,
+              percentage = 1,
+              additional_character = "",
+              exclude_zero_vals = False, 
+              fontsize = 10):
     """Use to label bar plots"""
     rects = ax.patches
     for rect in rects:
         height = rect.get_height()
         height_val = round_correct((round_correct(rect.get_height(),decimal) * percentage), decimal)
         s = str(float(height_val))
-        ax.text(rect.get_x() + (rect.get_width()/2), height,
-                s = str(s) + additional_character,
-                ha='center', va='bottom', fontsize = 10)
+        if exclude_zero_vals:
+            if height != 0:
+                ax.text(rect.get_x() + (rect.get_width()/2), height,
+                        s = str(s) + additional_character,
+                        ha='center', va='bottom', fontsize = fontsize)
+        else:
+            ax.text(rect.get_x() + (rect.get_width()/2), height,
+                        s = str(s) + additional_character,
+                        ha='center', va='bottom', fontsize = fontsize)
+
 
 def to_percent(y, position):
     """
