@@ -216,6 +216,8 @@ def get_school_names(year, db_connection = conn_oadmint):
           and System_ID = 'ATS'"""
     school_names_df = pd.read_sql(supertable_query, con = db_connection)
     school_names_df.columns = ['bn', 'dbn', 'school_name']
+    school_names_df.dbn = school_names_df.dbn.str.rstrip()
+    school_names_df.bn = school_names_df.bn.str.rstrip()
     return school_names_df
 
 def hide_code_on_export():
@@ -229,3 +231,63 @@ def hide_code_on_export():
 
     # This line will add a button to toggle visibility of code blocks, for use with the HTML export version
     di.display_html('''<button onclick="jQuery('.input_area').toggle(); jQuery('.prompt').toggle();">Toggle code</button>''', raw=True)
+
+def write_to_excel_template(worksheet, data, cell_range=None, named_range=None):
+
+    """
+    Updates an excel worksheet with the given data using openpyxl
+    :param worksheet: an excel worksheet
+    :param data: data used to update the worksheet cell range (list, tuple, np.ndarray, pd.Dataframe)
+    :param cell_range: a string representing the cell range, e.g. 'AB12:XX23'
+    :param named_range: a string representing an excel named range
+    """
+    def clean_data(data):
+        if not isinstance(data, (list, tuple, np.ndarray, pd.DataFrame)):
+            raise TypeError('Invalid data, data should be an array type iterable.')
+ 
+        if not len(data):
+            raise ValueError('You need to provide data to update the cells')
+ 
+        if isinstance(data, pd.DataFrame):
+            data = data.values
+ 
+        elif isinstance(data, (list, tuple)):
+            data = np.array(data)
+ 
+        return np.hstack(data)
+ 
+    def clean_cells(worksheet, cell_range, named_range):
+        # check that we can access a cell range
+        if not any((cell_range, named_range) or all((cell_range, named_range))):
+            raise ValueError('`cell_range` or `named_range` should be provided.')
+ 
+        # get the cell range
+        if cell_range:
+            try:                 
+                cells = np.hstack(worksheet[cell_range])
+            except ( AttributeError):
+                raise ValueError('The cell range provided is invalid, cell range must be in the form XX--[:YY--]')
+ 
+        else:
+            try:
+                cells = worksheet.get_named_range(named_range)
+            except (NamedRangeException, TypeError):
+                raise ValueError('The current worksheet {} does not contain any named range {}.'.format(
+                     worksheet.title,
+                     named_range))
+         # checking that we have cells to update, and data
+        if not len(cells):
+            raise ValueError('You need to provide cells to update.')
+        return cells
+    
+    cells = clean_cells(worksheet, cell_range, named_range)
+    data = clean_data(data)
+    # check that the data has the same dimension as cells
+    if len(cells) != data.size:
+        raise ValueError('Cells({}) should have the same dimension as the data({}).'.format(len(cells), data.size))
+
+    for i, cell in enumerate(cells):
+        if data[i] == 'nan':
+            cell.value = u""
+        else:
+            cell.value = data[i]
