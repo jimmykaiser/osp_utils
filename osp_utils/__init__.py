@@ -291,4 +291,4 @@ def write_to_excel_template(worksheet, data, cell_range=None, named_range=None):
         if data[i] == 'nan':
             cell.value = u""
         else:
-            cell.value = data[i]
+            cell.value = data[i]    
