@@ -232,6 +232,7 @@ def hide_code_on_export():
     # This line will add a button to toggle visibility of code blocks, for use with the HTML export version
     di.display_html('''<button onclick="jQuery('.input_area').toggle(); jQuery('.prompt').toggle();">Toggle code</button>''', raw=True)
 
+
 def write_to_excel_template(worksheet, data, cell_range=None, named_range=None):
 
     """
