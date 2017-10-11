@@ -100,15 +100,16 @@ def autolabel(ax,
     for rect in rects:
         height = rect.get_height()
         height_val = round_correct((round_correct(rect.get_height(),decimal) * percentage), decimal)
-        s = str(float(height_val))
+        height_val = "{:.{decimal}f}".format(height_val, decimal = decimal)
+        s = str(height_val)
         if exclude_zero_vals:
             if height != 0:
                 ax.text(rect.get_x() + (rect.get_width()/2), height,
-                        s = str(s) + additional_character,
+                        s = s + additional_character,
                         ha='center', va='bottom', fontsize = fontsize)
         else:
             ax.text(rect.get_x() + (rect.get_width()/2), height,
-                        s = str(s) + additional_character,
+                        s = s + additional_character,
                         ha='center', va='bottom', fontsize = fontsize)
 
 
