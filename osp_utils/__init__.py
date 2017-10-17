@@ -97,10 +97,14 @@ def autolabel(ax,
               fontsize = 10):
     """Use to label bar plots"""
     rects = ax.patches
+    if percentage == 100:
+        decimal_format = decimal - 2
+    else:
+        decimal_format = decimal
     for rect in rects:
         height = rect.get_height()
         height_val = round_correct((round_correct(rect.get_height(),decimal) * percentage), decimal)
-        height_val = "{:.{decimal}f}".format(height_val, decimal = decimal)
+        height_val = "{:.{decimal_format}f}".format(height_val, decimal_format = decimal_format)
         s = str(height_val)
         if exclude_zero_vals:
             if height != 0:
