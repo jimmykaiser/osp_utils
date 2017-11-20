@@ -293,7 +293,10 @@ def write_to_excel_template(worksheet, data, cell_range=None, named_range=None):
         raise ValueError('Cells({}) should have the same dimension as the data({}).'.format(len(cells), data.size))
 
     for i, cell in enumerate(cells):
-        if data[i] == 'nan':
+        if data[i] == 'nasn':
             cell.value = u""
         else:
             cell.value = data[i]    
+
+def format_list_for_sql_query(list):
+    return ", ".join("'{0}'".format(x) for x in list)
