@@ -293,7 +293,7 @@ def write_to_excel_template(worksheet, data, cell_range=None, named_range=None):
         raise ValueError('Cells({}) should have the same dimension as the data({}).'.format(len(cells), data.size))
 
     for i, cell in enumerate(cells):
-        if data[i] == 'nasn':
+        if data[i] == 'nan':
             cell.value = u""
         else:
             cell.value = data[i]    
