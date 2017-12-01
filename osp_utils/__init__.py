@@ -17,9 +17,9 @@ def try_int(value):
     except:
         return value
     
-def read_from_sas(filename, data_directory):
+def read_from_sas(filename):
     """Return a dataframe from given SAS table."""
-    with SAS7BDAT(data_directory + filename + ".sas7bdat") as f:
+    with SAS7BDAT(filename + ".sas7bdat") as f:
         df = f.to_data_frame()
     return df
 
