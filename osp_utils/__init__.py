@@ -23,24 +23,39 @@ def read_from_sas(filename):
         df = f.to_data_frame()
     return df
 
-def round_correct(value, decimal = 0):
-    """
-    Round a pandas series the same way that SAS and R do
-    Use with pandas: some_series.apply(round_correct, args =(number_of_decimals_to_round_to,))
-    """
-    reg_round = round(value, decimal)
-    rounding_error = .5 * (1/10**decimal)
-    val_to_add = 1 * (1/10**decimal)
-    if value >= 0:
-        if round(value - reg_round, decimal + 3) == rounding_error:
-            return reg_round + val_to_add
-        else:
-            return reg_round
-    else:
-        if round(value - reg_round, decimal + 3) == -rounding_error:
-            return reg_round - val_to_add
-        else:
-            return reg_round
+def round_correct(number, places=0):
+    '''
+    round_correct(number, places)
+
+    example:
+
+        >>> round_correct(2.55, 1) == 2.6
+        True
+
+    uses standard functions with no import to give "normal" behavior to 
+    rounding so that trueround(2.5) == 3, trueround(3.5) == 4, 
+    trueround(4.5) == 5, etc. Use with caution, however. This still has 
+    the same problem with floating point math. The return object will 
+    be type int if places=0 or a float if places=>1.
+
+    number is the floating point number needed rounding
+
+    places is the number of decimal places to round to with '0' as the
+        default which will actually return our interger. Otherwise, a
+        floating point will be returned to the given decimal place.
+
+    Note:   Use trueround_precision() if true precision with
+            floats is needed
+
+    GPL 2.0
+    copywrite by Narnie Harshoe <signupnarnie@gmail.com>
+    '''
+    place = 10**(places)
+    rounded = (int(number*place + 0.5if number>=0 else -0.5))/place
+    if rounded == int(rounded):
+        rounded = int(rounded)
+    return rounded
+
 
 def round_all_columns(df, n_decimals):
     for col in df.columns:
@@ -300,3 +315,8 @@ def write_to_excel_template(worksheet, data, cell_range=None, named_range=None):
 
 def format_list_for_sql_query(list):
     return ", ".join("'{0}'".format(x) for x in list)
+
+
+def flatten_column_names(df):
+    df.columns = [' '.join(col).strip() for col in df.columns.values]
+    return df
