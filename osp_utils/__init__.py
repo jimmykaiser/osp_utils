@@ -1,27 +1,121 @@
+# Libraries for data analysis
 import pandas as pd
 import numpy as np
+
+# Libraries for data visualization
 import matplotlib.pyplot as plt
-from sas7bdat import SAS7BDAT
-pd.options.mode.chained_assignment = None 
 import seaborn as sns
+
+# Library for reading data from SAS
+from sas7bdat import SAS7BDAT
+
+# Library for connecting to SQL server
 import pyodbc
 
+# TO DO: Add utility for installing needed packages
+
+
+######################################
+### Working with Jupyter Notebooks ###
+######################################
+
+# Control warnings and display in notebooks
+pd.options.mode.chained_assignment = None 
 pd.options.display.max_rows = 100
 pd.options.display.max_columns = 100
 
+# Use to display multiple output lines in one cell
+# from IPython.core.interactiveshell import InteractiveShell
+# InteractiveShell.ast_node_interactivity = "all"
+
+def hide_code_on_export():
+    """Use before any code cells to hide code on export to HTML
+    There will be a toggle button to show or hide the code
+    Markdown cells will still be shown"""
+    import IPython.core.display as di
+
+    # This line will hide code by default when the notebook is exported as HTML
+    di.display_html('<script>jQuery(function() {if (jQuery("body.notebook_app").length == 0) { jQuery(".input_area").toggle(); jQuery(".prompt").toggle();}});</script>', raw=True)
+
+    # This line will add a button to toggle visibility of code blocks, for use with the HTML export version
+    di.display_html('''<button onclick="jQuery('.input_area').toggle(); jQuery('.prompt').toggle();">Toggle code</button>''', raw=True)
 
 
-def try_int(value):
-    try:
-        return int(value)
-    except:
-        return value
-    
+#################################
+### Reading data from SAS/SQL ###
+#################################
+
+# SQL server connections
+conn_sprint = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES00VADOSQL001;Trusted_Connection=yes;')
+conn_oadmint = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES00VADOSQL001;Trusted_Connection=yes;')
+conn_ordint = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES11vADOSQL006,4433;Trusted_Connection=yes;')
+conn_ats = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES11vSINFAG02,4433;Trusted_Connection=yes;')
+
 def read_from_sas(filename):
     """Return a dataframe from given SAS table."""
     with SAS7BDAT(filename + ".sas7bdat") as f:
         df = f.to_data_frame()
     return df
+
+
+def format_list_for_sql_query(list):
+    return ", ".join("'{0}'".format(x) for x in list)
+
+
+def get_school_names(year, db_connection = conn_oadmint):
+    supertable_query = """SELECT [Location_Code]
+              ,[System_Code]
+              ,[Location_Name]
+          FROM [OADM_INT].[dbo].[Location_Supertable1]
+          where Fiscal_Year = """ + year + """
+          and System_ID = 'ATS'"""
+    school_names_df = pd.read_sql(supertable_query, con = db_connection)
+    school_names_df.columns = ['bn', 'dbn', 'school_name']
+    school_names_df.dbn = school_names_df.dbn.str.rstrip()
+    school_names_df.bn = school_names_df.bn.str.rstrip()
+    return school_names_df
+
+
+def print_sprint_ids(ids):
+    """Use if you want to quickly grab a few ids to look at in SQL"""
+    for id in ids:
+        print("'" + str(id) + "',")
+
+
+###########################
+### Working with Pandas ###
+###########################
+
+def get_first_non_null(x):
+    """
+    Get first non null value from row
+    Usage: df[cols].apply(get_first_non_null, axis = 1)
+    """
+    if x.first_valid_index() is None:
+        return None
+    else:
+        return x[x.first_valid_index()]
+ 
+    
+def get_last_non_null(x):
+    """
+    Get last non null value from row
+    Usage: df[cols].apply(get_last_non_null, axis = 1)
+    """
+    if x.last_valid_index() is None:
+        return None
+    else:
+        return x[x.last_valid_index()]
+
+
+def flatten_column_names(df):
+    df.columns = [' '.join(col).strip() for col in df.columns.values]
+    return df
+
+
+#######################
+### Formatting data ###
+#######################
 
 def round_correct(number, places=0):
     '''
@@ -66,17 +160,38 @@ def round_all_columns(df, n_decimals):
     return df
 
 
+def fix_ascii_col_names(df):
+    """Columns from SQL sometimes start with weird characters - this fixes them"""
+    df.columns = [x.encode('ascii', 'ignore').decode("UTF-8") for x in df.columns]
+    
+
+##########################
+### Working with DBN's ###
+##########################
+
 def get_district(dbn):
 	"""Get leading two numbers of DBN as district"""
 	return dbn[0:2]
+
 
 def get_bn(dbn):
 	"""Get trailing 4 numbers of DBN as bn"""
 	return dbn[2:]
 
+
 def get_borough(dbn):
 	"""Get borough from dbn"""
 	return dbn[2]
+
+
+def create_bn_col(df, dbn_col = "dbn"):
+    """Create bn column from given dbn column"""
+    df['bn'] = df[dbn_col].apply(lambda x: x[2:])
+
+
+##################################
+### Math/statistical functions ###
+##################################
 
 def create_z_score(list_of_vals):
     """Calculate z-scores for a given list"""
@@ -84,14 +199,6 @@ def create_z_score(list_of_vals):
     group_std = np.nanstd(list_of_vals)
     zs = [abs((x-group_mean)/group_std) for x in list_of_vals]
     return zs
-
-def fix_ascii_col_names(df):
-    """Columns from SQL sometimes start with weird characters - this fixes them"""
-    df.columns = [x.encode('ascii', 'ignore').decode("UTF-8") for x in df.columns]
-    
-def create_bn_col(df, dbn_col = "dbn"):
-    """Create bn column from given dbn column"""
-    df['bn'] = df[dbn_col].apply(lambda x: x[2:])
 
 
 def percentile_rank_groups_10000(df, cols_to_groupby, col_to_rank, method_to_rank = "average"):
@@ -103,6 +210,41 @@ def percentile_rank_groups_10000(df, cols_to_groupby, col_to_rank, method_to_ran
     df['groupby_size'] = df.groupby(cols_to_groupby)[col_to_rank].transform('size')
     df['per_rank'] = ((df.raw_rank*100)/(df.groupby_size + 1)).apply(round_correct, args = (1,))
 
+
+def grouped_weighted_avg(values, weights, by):
+    "Usage: grouped_weighted_avg(values=df[values_col], weights=df[weight_col], by=df[grouped_col])"
+    return (values * weights).groupby(by).sum() / weights.groupby(by).sum()
+
+
+def kappa(cm):
+    """
+    Compares your classifier with a random classifier that predicts the classes as
+    often as your classifier does.
+    Its values range from -1 to 1.
+    If its value is positive, your classifier is doing better than chance.
+    If its value is negative, then your classifier is doing worse than chance.
+    """
+    num_classes = len(cm)
+    sum_all = 0
+    sum_diag = 0
+    sum_rands = 0
+    for i in range(0, num_classes):
+        sum_diag = sum_diag + cm[i, i]
+        sum_col = 0
+        sum_row = 0
+        for j in range(0, num_classes):
+            sum_col = sum_col + cm[j, i]
+            sum_row = sum_row + cm[i, j]
+            sum_all = sum_all + cm[i, j]
+        sum_rands = sum_rands + sum_row * sum_col
+    acc = sum_diag * 1.0 / sum_all
+    rand = sum_rands * 1.0 / (sum_all * sum_all)
+    return (acc - rand) / (1 - rand)
+
+
+########################## 
+### Data visualization ###
+##########################
 
 def autolabel(ax, 
               decimal = 1,
@@ -142,6 +284,7 @@ def to_percent(y, position):
     s = '%1.0f' % float(s)
     return str(s) + '%'
 
+
 def change_axis_to_percent(ax, axis = 'y'):
     formatter = plt.FuncFormatter(to_percent)
     if axis == 'x':
@@ -149,40 +292,15 @@ def change_axis_to_percent(ax, axis = 'y'):
     if axis == 'y':
         ax.yaxis.set_major_formatter(formatter)
 
-def return_dups(dataframe, variable):
-    return dataframe[dataframe[variable].isin(dataframe[dataframe[variable].duplicated()][variable])]
 
-def get_first_non_null(x):
-    """
-    Get first non null value from row
-    Usage: df[cols].apply(get_first_non_null, axis = 1)
-    """
-    if x.first_valid_index() is None:
-        return None
-    else:
-        return x[x.first_valid_index()]
-    
-def get_last_non_null(x):
-    """
-    Get last non null value from row
-    Usage: df[cols].apply(get_last_non_null, axis = 1)
-    """
-    if x.last_valid_index() is None:
-        return None
-    else:
-        return x[x.last_valid_index()]
-
-# Use to display multiple output lines in one cell
-# from IPython.core.interactiveshell import InteractiveShell
-# InteractiveShell.ast_node_interactivity = "all"
-
-def print_sprint_ids(ids):
-    for id in ids:
-        print("'" + str(id) + "',")
+###################################
+### Working with public reports ###
+###################################
 
 #RPSG public spreadsheet columns names
 city_columns = ['grade', 'year', 'category', 'n_tested', 'scale_score', 'level_1_n', 'level_1_per', 'level_2_n', 'level_2_per',
                        'level_3_n', 'level_3_per','level_4_n', 'level_4_per', 'level_34_n', 'level_34_per']
+
 
 # 2016 SQR public workbook summary pages
 hs_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/32595FE4-15E0-4DFE-A4F4-2D9AD32ED6D1/0/2015_2016_HS_SQR_Results_2016_11_15.xlsx", sheetname = None)
@@ -192,66 +310,19 @@ yabc_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/9857774C-1EFB
 ec_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/EB047F9D-E0B3-48EF-BB85-1C6B03844BFB/0/2015_2016_EC_SQR_Results_2016_11_16.xlsx", sheetname = None)
 d75_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/25C17A3B-93B8-40FD-9F88-A4E7A81AA545/0/2015_2016_D75_SQR_Results_2016_11_16.xlsx", sheetname = None)
 
-def grouped_weighted_avg(values, weights, by):
-    "Usage: grouped_weighted_avg(values=df[values_col], weights=df[weight_col], by=df[grouped_col])"
-    return (values * weights).groupby(by).sum() / weights.groupby(by).sum()
 
-def kappa(cm):
-    """
-    Compares your classifier with a random classifier that predicts the classes as
-    often as your classifier does.
-    Its values range from -1 to 1.
-    If its value is positive, your classifier is doing better than chance.
-    If its value is negative, then your classifier is doing worse than chance.
-    """
-    num_classes = len(cm)
-    sum_all = 0
-    sum_diag = 0
-    sum_rands = 0
-    for i in range(0, num_classes):
-        sum_diag = sum_diag + cm[i, i]
-        sum_col = 0
-        sum_row = 0
-        for j in range(0, num_classes):
-            sum_col = sum_col + cm[j, i]
-            sum_row = sum_row + cm[i, j]
-            sum_all = sum_all + cm[i, j]
-        sum_rands = sum_rands + sum_row * sum_col
-    acc = sum_diag * 1.0 / sum_all
-    rand = sum_rands * 1.0 / (sum_all * sum_all)
-    return (acc - rand) / (1 - rand)
+# TO DO: Add 2017 public workbooks
 
-# SQL server connections
-conn_sprint = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES00VADOSQL001;Trusted_Connection=yes;')
-conn_oadmint = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES00VADOSQL001;Trusted_Connection=yes;')
-conn_ordint = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES11vADOSQL006,4433;Trusted_Connection=yes;')
-conn_ats = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES11vSINFAG02,4433;Trusted_Connection=yes;')
 
-def get_school_names(year, db_connection = conn_oadmint):
-    supertable_query = """SELECT [Location_Code]
-              ,[System_Code]
-              ,[Location_Name]
-          FROM [OADM_INT].[dbo].[Location_Supertable1]
-          where Fiscal_Year = """ + year + """
-          and System_ID = 'ATS'"""
-    school_names_df = pd.read_sql(supertable_query, con = db_connection)
-    school_names_df.columns = ['bn', 'dbn', 'school_name']
-    school_names_df.dbn = school_names_df.dbn.str.rstrip()
-    school_names_df.bn = school_names_df.bn.str.rstrip()
-    return school_names_df
+###########################
+### Predictive modeling ###
+###########################
 
-def hide_code_on_export():
-    """Use before any code cells to hide code on export to HTML
-    There will be a toggle button to show or hide the code
-    Markdown cells will still be shown"""
-    import IPython.core.display as di
 
-    # This line will hide code by default when the notebook is exported as HTML
-    di.display_html('<script>jQuery(function() {if (jQuery("body.notebook_app").length == 0) { jQuery(".input_area").toggle(); jQuery(".prompt").toggle();}});</script>', raw=True)
 
-    # This line will add a button to toggle visibility of code blocks, for use with the HTML export version
-    di.display_html('''<button onclick="jQuery('.input_area').toggle(); jQuery('.prompt').toggle();">Toggle code</button>''', raw=True)
-
+#############
+### Other ###
+#############
 
 def write_to_excel_template(worksheet, data, cell_range=None, named_range=None):
 
@@ -313,10 +384,3 @@ def write_to_excel_template(worksheet, data, cell_range=None, named_range=None):
         else:
             cell.value = data[i]    
 
-def format_list_for_sql_query(list):
-    return ", ".join("'{0}'".format(x) for x in list)
-
-
-def flatten_column_names(df):
-    df.columns = [' '.join(col).strip() for col in df.columns.values]
-    return df
