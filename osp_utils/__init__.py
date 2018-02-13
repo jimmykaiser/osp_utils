@@ -211,6 +211,34 @@ def percentile_rank_groups_10000(df, cols_to_groupby, col_to_rank, method_to_ran
     df['per_rank'] = ((df.raw_rank*100)/(df.groupby_size + 1)).apply(round_correct, args = (1,))
 
 
+def process_raw_data_for_equal_percentile_conversion(df,
+                                                     suffix,
+                                                     ranking_method = 'average',
+                                                     ascending_method = True,
+                                                     pct_method = True):
+    """df should be one column with just all the scores to be matched"""
+    raw_data_col_name = 'raw_data_' + suffix
+    df.columns = [raw_data_col_name]
+    # Percentile rank data
+    df['per_rank'] = df[raw_data_col_name].rank(method = ranking_method, 
+                                                ascending = ascending_method, 
+                                                pct = pct_method)
+    df = df.sort_values('per_rank').drop_duplicates()
+    return df, raw_data_col_name
+
+
+def get_closest(per_rank_1, data_df_2, raw_data_col_name_2):
+    return data_df_2.iloc[(data_df_2.per_rank - per_rank_1).abs().argsort()[:1]][raw_data_col_name_2].values[0]
+
+
+def create_equal_percentile_conversion_chart(data_df_1, suffix_1, 
+                                             data_df_2, suffix_2):
+    ranked_df_1, raw_data_col_name_1 = process_raw_data_for_equal_percentile_conversion(data_df_1, suffix_1)
+    ranked_df_2, raw_data_col_name_2 = process_raw_data_for_equal_percentile_conversion(data_df_2, suffix_2)
+    ranked_df_1[raw_data_col_name_2] = ranked_df_1.per_rank.apply(get_closest, args = (ranked_df_2, raw_data_col_name_2))
+    return ranked_df_1.sort_values('per_rank')
+
+
 def grouped_weighted_avg(values, weights, by):
     "Usage: grouped_weighted_avg(values=df[values_col], weights=df[weight_col], by=df[grouped_col])"
     return (values * weights).groupby(by).sum() / weights.groupby(by).sum()
@@ -383,4 +411,7 @@ def write_to_excel_template(worksheet, data, cell_range=None, named_range=None):
             cell.value = u""
         else:
             cell.value = data[i]    
+
+
+
 
