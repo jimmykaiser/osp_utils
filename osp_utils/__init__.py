@@ -29,9 +29,12 @@ pd.options.display.max_columns = 100
 # InteractiveShell.ast_node_interactivity = "all"
 
 def hide_code_on_export():
-    """Use before any code cells to hide code on export to HTML
+    """
+    Use before any code cells to hide code on export to HTML
     There will be a toggle button to show or hide the code
-    Markdown cells will still be shown"""
+    Markdown cells will still be shown
+    From: https://stackoverflow.com/questions/27934885/how-to-hide-code-from-cells-in-ipython-notebook-visualized-with-nbviewer
+    """
     import IPython.core.display as di
 
     # This line will hide code by default when the notebook is exported as HTML
@@ -52,7 +55,10 @@ conn_ordint = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES11vADOSQL006,4433;Tr
 conn_ats = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES11vSINFAG02,4433;Trusted_Connection=yes;')
 
 def read_from_sas(filename):
-    """Return a dataframe from given SAS table."""
+    """
+    Return a dataframe from given SAS table.
+    https://pypi.python.org/pypi/sas7bdat
+    """
     with SAS7BDAT(filename + ".sas7bdat") as f:
         df = f.to_data_frame()
     return df
@@ -90,6 +96,7 @@ def get_first_non_null(x):
     """
     Get first non null value from row
     Usage: df[cols].apply(get_first_non_null, axis = 1)
+    From: https://stackoverflow.com/questions/31828240/first-non-null-value-per-row-from-a-list-of-pandas-columns
     """
     if x.first_valid_index() is None:
         return None
@@ -101,6 +108,7 @@ def get_last_non_null(x):
     """
     Get last non null value from row
     Usage: df[cols].apply(get_last_non_null, axis = 1)
+    From: https://stackoverflow.com/questions/31828240/first-non-null-value-per-row-from-a-list-of-pandas-columns
     """
     if x.last_valid_index() is None:
         return None
@@ -109,6 +117,9 @@ def get_last_non_null(x):
 
 
 def flatten_column_names(df):
+    """
+    From: https://stackoverflow.com/questions/14507794/python-pandas-how-to-flatten-a-hierarchical-index-in-columns
+    """
     df.columns = [' '.join(col).strip() for col in df.columns.values]
     return df
 
@@ -143,6 +154,7 @@ def round_correct(number, places=0):
 
     GPL 2.0
     copywrite by Narnie Harshoe <signupnarnie@gmail.com>
+    From: https://stackoverflow.com/questions/10825926/python-3-x-rounding-behavior/10825998
     '''
     place = 10**(places)
     rounded = (int(number*place + 0.5if number>=0 else -0.5))/place
@@ -228,6 +240,10 @@ def process_raw_data_for_equal_percentile_conversion(df,
 
 
 def get_closest(per_rank_1, data_df_2, raw_data_col_name_2):
+    """
+    Usage: df.percentile_ranked_col.apply(get_closest, args = (df_with_percentile_ranks, col_name_with_raw_data)
+    Adapted from: https://stackoverflow.com/questions/30112202/how-do-i-find-the-closest-values-in-a-pandas-series-to-an-input-number
+    """
     return data_df_2.iloc[(data_df_2.per_rank - per_rank_1).abs().argsort()[:1]][raw_data_col_name_2].values[0]
 
 
@@ -240,7 +256,10 @@ def create_equal_percentile_conversion_chart(data_df_1, suffix_1,
 
 
 def grouped_weighted_avg(values, weights, by):
-    "Usage: grouped_weighted_avg(values=df[values_col], weights=df[weight_col], by=df[grouped_col])"
+    """
+    Usage: grouped_weighted_avg(values=df[values_col], weights=df[weight_col], by=df[grouped_col])
+    From: https://stackoverflow.com/questions/26205922/calculate-weighted-average-using-a-pandas-dataframe
+    """
     return (values * weights).groupby(by).sum() / weights.groupby(by).sum()
 
 
@@ -280,7 +299,10 @@ def autolabel(ax,
               additional_character = "",
               exclude_zero_vals = False, 
               fontsize = 10):
-    """Use to label bar plots"""
+    """
+    Use to label bar plots
+    Adapted from: https://matplotlib.org/examples/api/barchart_demo.html
+    """
     rects = ax.patches
     if percentage == 100:
         decimal_format = decimal - 2
@@ -325,7 +347,7 @@ def change_axis_to_percent(ax, axis = 'y'):
 ### Working with public reports ###
 ###################################
 
-#RPSG public spreadsheet columns names
+# RPSG public spreadsheet columns names
 city_columns = ['grade', 'year', 'category', 'n_tested', 'scale_score', 'level_1_n', 'level_1_per', 'level_2_n', 'level_2_per',
                        'level_3_n', 'level_3_per','level_4_n', 'level_4_per', 'level_34_n', 'level_34_per']
 
@@ -340,13 +362,14 @@ d75_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/25C17A3B-93B8-
 
 
 # TO DO: Add 2017 public workbooks
+# TO DO: Add easy way to access the same tabs over several years
 
 
 ###########################
 ### Predictive modeling ###
 ###########################
 
-
+# TO DO: Add some functions for model evaluation and visualization from college match project
 
 #############
 ### Other ###
@@ -360,6 +383,8 @@ def write_to_excel_template(worksheet, data, cell_range=None, named_range=None):
     :param data: data used to update the worksheet cell range (list, tuple, np.ndarray, pd.Dataframe)
     :param cell_range: a string representing the cell range, e.g. 'AB12:XX23'
     :param named_range: a string representing an excel named range
+
+    From: http://mourafiq.com/2016/01/01/generating-excel-report-with-python.html
     """
     def clean_data(data):
         if not isinstance(data, (list, tuple, np.ndarray, pd.DataFrame)):
