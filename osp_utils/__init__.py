@@ -54,6 +54,28 @@ conn_oadmint = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES00VADOSQL001;Truste
 conn_ordint = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES11vADOSQL006,4433;Trusted_Connection=yes;')
 conn_ats = pyodbc.connect(r'DRIVER={SQL Server};SERVER=ES11vSINFAG02,4433;Trusted_Connection=yes;')
 
+
+def connect_toolsdot(local_drive = "D:",
+                     settings_file_name = 'settings',
+                     username_var = 'un',
+                     password_var = 'pw'):
+    """
+    Usage:
+    query = "select * from OPE_EXT.dat.table"
+    df = pd.read_sql(query, connect_toolsdot())"""
+    import sys
+    sys.path.append(local_drive)
+    settings = __import__(settings_file_name)   
+    import settings
+    conn = pyodbc.connect(
+    r'DRIVER={SQL Server};'
+    r'SERVER=ES00vDOPESQL001.OWS.TEST.LAB;'
+    r'UID=' + settings.login[username_var] + ";"
+    r'PWD=' + settings.login[password_var]
+    )
+    return conn
+
+
 def read_from_sas(filename):
     """
     Return a dataframe from given SAS table.
