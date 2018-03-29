@@ -138,11 +138,11 @@ def get_last_non_null(x):
         return x[x.last_valid_index()]
 
 
-def flatten_column_names(df):
+def flatten_column_names(df, character_to_join_with = '_'):
     """
     From: https://stackoverflow.com/questions/14507794/python-pandas-how-to-flatten-a-hierarchical-index-in-columns
     """
-    df.columns = [' '.join(col).strip() for col in df.columns.values]
+    df.columns = [character_to_join_with.join(col).strip() for col in df.columns.values]
     return df
 
 
