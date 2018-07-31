@@ -375,12 +375,12 @@ city_columns = ['grade', 'year', 'category', 'n_tested', 'scale_score', 'level_1
 
 
 # 2016 SQR public workbook summary pages
-hs_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/32595FE4-15E0-4DFE-A4F4-2D9AD32ED6D1/0/2015_2016_HS_SQR_Results_2016_11_15.xlsx", sheetname = None)
-ems_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/B3F6B2AC-DE2D-4F5E-8F62-A11EBF3090EC/0/2015_2016_EMS_SQR_Results_2016_11_15.xlsx", sheetname = None)
-hst_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/2E919AAB-D033-45C4-8CDB-F0D3EF9FACD1/0/2015_2016_HST_SQR_Results_2016_11_16.xlsx", sheetname = None)
-yabc_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/9857774C-1EFB-4519-9A5D-D7869298DCBD/0/2015_2016_YABC_SQR_Results_2016_11_16.xlsx", sheetname = None)
-ec_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/EB047F9D-E0B3-48EF-BB85-1C6B03844BFB/0/2015_2016_EC_SQR_Results_2016_11_16.xlsx", sheetname = None)
-d75_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/25C17A3B-93B8-40FD-9F88-A4E7A81AA545/0/2015_2016_D75_SQR_Results_2016_11_16.xlsx", sheetname = None)
+# hs_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/32595FE4-15E0-4DFE-A4F4-2D9AD32ED6D1/0/2015_2016_HS_SQR_Results_2016_11_15.xlsx", sheetname = None)
+# ems_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/B3F6B2AC-DE2D-4F5E-8F62-A11EBF3090EC/0/2015_2016_EMS_SQR_Results_2016_11_15.xlsx", sheetname = None)
+# hst_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/2E919AAB-D033-45C4-8CDB-F0D3EF9FACD1/0/2015_2016_HST_SQR_Results_2016_11_16.xlsx", sheetname = None)
+# yabc_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/9857774C-1EFB-4519-9A5D-D7869298DCBD/0/2015_2016_YABC_SQR_Results_2016_11_16.xlsx", sheetname = None)
+# ec_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/EB047F9D-E0B3-48EF-BB85-1C6B03844BFB/0/2015_2016_EC_SQR_Results_2016_11_16.xlsx", sheetname = None)
+# d75_2016_sqr = pd.read_excel("http://schools.nyc.gov/NR/rdonlyres/25C17A3B-93B8-40FD-9F88-A4E7A81AA545/0/2015_2016_D75_SQR_Results_2016_11_16.xlsx", sheetname = None)
 
 
 # TO DO: Add 2017 public workbooks
